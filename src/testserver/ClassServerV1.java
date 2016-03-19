@@ -22,8 +22,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class ClassServerV1 {
-	// done here
-	// new note to test
 
     private HashMap<String, Connection> clientTable;
     ArrayList<UserLogin> usersList;
