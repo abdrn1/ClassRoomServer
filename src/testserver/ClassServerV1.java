@@ -57,6 +57,7 @@ public class ClassServerV1 {
         kryo.register(TextMeesage.class);
         kryo.register(SimpleTextMessage.class);
         kryo.register(FileChunkMessageV2.class);
+        kryo.register(LockMessage.class);
 
         classroomServer.bind(9995, 54777);
         classroomServer.start();
@@ -139,7 +140,11 @@ public class ClassServerV1 {
                 }  else if (ob instanceof TextMeesage) {
                     System.out.println("New Text Message Recived From :" + ((TextMeesage) ob).getSenderName());
                     SendUtil.sendSimpleMessageToRecivers(clientTable, (TextMeesage) ob);
-                } 
+                } else if(ob instanceof LockMessage){
+                    System.out.println("New Lock Message Recived From :" + ((LockMessage) ob).getSenderName());
+                    SendUtil.sendLockMessageToRecivers(clientTable, (LockMessage) ob);
+
+                }
                 /*else if (ob instanceof FileChunkMessageV2) {
                     try {
                         FileChunkMessageV2 fcmv2 = (FileChunkMessageV2) ob;

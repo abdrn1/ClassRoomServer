@@ -150,6 +150,34 @@ public class SendUtil {
 
     }
 
+    public static void sendLockMessageToRecivers(HashMap clientTable, LockMessage tm) {
+
+        if (tm.getReceivers() != null) {
+
+            Set set = clientTable.entrySet();
+            // Get an iterator
+            Iterator it = set.iterator();
+            // Display elements
+            while (it.hasNext()) {
+                Map.Entry me = (Map.Entry) it.next();
+                Connection temp = (Connection) me.getValue();
+                String reciverID = (String) me.getKey();
+                String[] recivers = tm.getReceivers();
+                if (recivers != null) {
+                    if (!(reciverID.equals(tm.getSenderID()))) {
+                        if (findUserIDInArray(reciverID, recivers)) {
+                        	temp.sendTCP(tm);
+                        }
+
+                    }
+
+                }
+
+            }
+        }
+
+    }
+
     private static boolean findUserIDInArray(String uid, String[] recivers) {
         for (String reciver : recivers) {
             if (uid.equals(reciver)) {
