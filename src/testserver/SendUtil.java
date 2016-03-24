@@ -37,7 +37,8 @@ public class SendUtil {
         }
 
     }
-
+    
+   
     /// send file to recivers (FileChunkMessageV2 fcv2: used toget sender details)
     public static void SendFileToRecivers(HashMap clientTable, FileChunkMessageV2 fcv2, String[] tRecivers) {
         RandomAccessFile aFile = null;
@@ -124,7 +125,8 @@ public class SendUtil {
     public static void sendSimpleMessageToRecivers(HashMap clientTable, TextMeesage tm) {
 
         if (tm.getRecivers() != null) {
-
+        	
+        System.out.println("Ther Is recivers Here");
             Set set = clientTable.entrySet();
             // Get an iterator
             Iterator it = set.iterator();
@@ -135,6 +137,7 @@ public class SendUtil {
                 String reciverID = (String) me.getKey();
                 String[] recivers = tm.getRecivers();
                 if (recivers != null) {
+                	
                     if (!(reciverID.equals(tm.getSenderID()))) {
                         if (findUserIDInArray(reciverID, recivers)) {
                             temp.sendTCP(new SimpleTextMessage(tm.getSenderID(), tm.getSenderName(), "TXT", tm.getTextMessage()));
@@ -180,7 +183,9 @@ public class SendUtil {
 
     private static boolean findUserIDInArray(String uid, String[] recivers) {
         for (String reciver : recivers) {
+        	System.out.println("could be  Reciver" + reciver);
             if (uid.equals(reciver)) {
+            	System.out.println("Curren Simple Message Reciver is :" + reciver);
                 return true;
             }
         }
