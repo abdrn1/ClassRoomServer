@@ -97,9 +97,14 @@ public class ClassServerV1 {
                                     try {
                                         
                                         FileChunkMessageV2 fcmv2 = (FileChunkMessageV2) ob;
+                                        String workingDir = System.getProperty("user.dir");
+                                        
+                                        System.out.println("working dir is: "+workingDir);
                                         //recive the first packet from new file 
+                                       
+                                        
                                         if (fcmv2.getChunkCounter() == 1L) {
-                                            buildfromBytesV2 = new BuildFileFromBytesV2("E:/");
+                                            buildfromBytesV2 = new BuildFileFromBytesV2(workingDir);
                                             tRecivers= fcmv2.getRecivers();
                                             buildfromBytesV2.constructFile(fcmv2);
                                           //  SendUtil.sendFileChunkToRecivers(clientTable, fcmv2, tRecivers);
@@ -109,7 +114,7 @@ public class ClassServerV1 {
                                               System.out.println("End OF REcive, Start TO send File To the Recivers");
                                               System.out.println(fcmv2.getFileName());
                                               System.out.println(fcmv2.getSenderID());
-                                              FileSenderThreadV2 fsv2 = new FileSenderThreadV2(clientTable, fcmv2, tRecivers,"E:/");
+                                              FileSenderThreadV2 fsv2 = new FileSenderThreadV2(clientTable, fcmv2, tRecivers,workingDir);
                                               //Thread t = new Thread(fsv2);
                                               //t.start();
                                               fsv2.start();

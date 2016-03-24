@@ -64,6 +64,7 @@ public class FileSenderThreadV2 extends Thread{
                     chunkFromFile.setChunkCounter(chunkcounter);
                     chunkFromFile.setChunk(currentchunk);
                     chunkFromFile.setFileName(fcv2.getFileName());
+                    chunkFromFile.setFiletype(fcv2.getFiletype());
                     
                     // method Check recivers and send them chunk of file
                     System.out.println("Send Packet To Recivers with ID: "+chunkFromFile.getChunkCounter());
@@ -77,6 +78,7 @@ public class FileSenderThreadV2 extends Thread{
                 endofFile.setSenderID(fcv2.getSenderID());
                 endofFile.setChunkCounter((-1L));
                 endofFile.setFileName(fcv2.getFileName());
+                endofFile.setFiletype(fcv2.getFiletype());
                 System.out.println("Send End Of File To recivers");
                 sendFileChunkToRecivers(clientTable, endofFile, tRecivers);
                 aFile.close();
