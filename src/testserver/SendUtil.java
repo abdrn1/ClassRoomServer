@@ -5,22 +5,21 @@
  */
 package testserver;
 
+import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
+
+import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.io.ByteArrayOutputStream;
 
 /**
- *
  * @author Abd
  */
 public class SendUtil {
 
     /// send that New User Online
-    public static void broadcastNewUser(HashMap clientTable, UserLogin ul1) {
+    public static void broadcastNewUser(Hashtable clientTable, UserLogin ul1) {
         Set set = clientTable.entrySet();
         // Get an iterator
         Iterator i = set.iterator();
@@ -37,9 +36,23 @@ public class SendUtil {
         }
 
     }
-    
-   
-    /// send file to recivers (FileChunkMessageV2 fcv2: used toget sender details)
+
+    public static void broadcastStatusMessage(Hashtable clientTable, StatusMessage toSend) {
+        Set set = clientTable.entrySet();
+        // Get an iterator
+        Iterator i = set.iterator();
+        // Display elements
+        while (i.hasNext()) {
+            Map.Entry me = (Map.Entry) i.next();
+            Connection temp = (Connection) me.getValue();
+            String recID = (String) me.getKey();
+            temp.sendTCP(toSend);
+            System.out.println("StatusMessage : " + recID);
+
+        }
+
+    }
+
     public static void SendFileToRecivers(HashMap clientTable, FileChunkMessageV2 fcv2, String[] tRecivers) {
         RandomAccessFile aFile = null;
         long chunkcounter;
@@ -50,10 +63,11 @@ public class SendUtil {
                 aFile = new RandomAccessFile("E:/" + fcv2.getFileName(), "rw");
 
                 chunkcounter = 0;
-                ByteArrayOutputStream bos = new ByteArrayOutputStream();;
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                ;
                 byte[] buf = new byte[bufferSize];
 
-                for (int readNum; (readNum = aFile.read(buf)) != -1;) {
+                for (int readNum; (readNum = aFile.read(buf)) != -1; ) {
 
                     chunkcounter++;
                     //bos = new ByteArrayOutputStream();
@@ -92,7 +106,7 @@ public class SendUtil {
     }
 
     public static void sendFileChunkToRecivers(HashMap clientTable, FileChunkMessageV2 fcv2, String[] tRecivers) {
-        // FileChunkMessageV2 fcv2 used to get file informations 
+        // FileChunkMessageV2 fcv2 used to get file informations
 
         if (tRecivers != null) {
             System.out.println("There IS Recivers");
@@ -105,12 +119,12 @@ public class SendUtil {
                 Map.Entry me = (Map.Entry) it.next();
                 Connection temp = (Connection) me.getValue();
                 String reciverID = (String) me.getKey();
-               
+
                 //String[] tRecivers = tm.getRecivers();
                 if (!(reciverID.equals(fcv2.getSenderID()))) {
-                     System.out.println("Current Client is :" +reciverID);
+                    System.out.println("Current Client is :" + reciverID);
                     if (findUserIDInArray(reciverID, tRecivers)) {
-                        System.out.println("Current Reciver is :" +reciverID);
+                        System.out.println("Current Reciver is :" + reciverID);
                         temp.sendTCP(fcv2);
                     }
 
@@ -121,12 +135,12 @@ public class SendUtil {
 
     }
 
-    /// Send Message from sender to reciver 
-    public static void sendSimpleMessageToRecivers(HashMap clientTable, TextMeesage tm) {
+    /// Send Message from sender to reciver
+    public synchronized static void sendSimpleMessageToRecivers(Hashtable clientTable, TextMeesage tm) {
 
         if (tm.getRecivers() != null) {
-        	
-        System.out.println("Ther Is recivers Here");
+
+            System.out.println("Ther Is recivers Here");
             Set set = clientTable.entrySet();
             // Get an iterator
             Iterator it = set.iterator();
@@ -137,10 +151,11 @@ public class SendUtil {
                 String reciverID = (String) me.getKey();
                 String[] recivers = tm.getRecivers();
                 if (recivers != null) {
-                	
+
                     if (!(reciverID.equals(tm.getSenderID()))) {
                         if (findUserIDInArray(reciverID, recivers)) {
                             temp.sendTCP(new SimpleTextMessage(tm.getSenderID(), tm.getSenderName(), "TXT", tm.getTextMessage()));
+                            System.out.print("Send Simple Message To user ID : " + reciverID);
 
                         }
 
@@ -153,7 +168,7 @@ public class SendUtil {
 
     }
 
-    public static void sendLockMessageToRecivers(HashMap clientTable, LockMessage tm) {
+    public static void sendLockMessageToRecivers(Hashtable clientTable, LockMessage tm) {
 
         if (tm.getReceivers() != null) {
 
@@ -169,7 +184,35 @@ public class SendUtil {
                 if (recivers != null) {
                     if (!(reciverID.equals(tm.getSenderID()))) {
                         if (findUserIDInArray(reciverID, recivers)) {
-                        	temp.sendTCP(tm);
+                            temp.sendTCP(tm);
+                        }
+
+                    }
+
+                }
+
+            }
+        }
+
+    }
+
+    public static void sendExamResuloRecivers(Hashtable clientTable, ExamResultMessage tm) {
+
+        if (tm.getReceivers() != null) {
+
+            Set set = clientTable.entrySet();
+            // Get an iterator
+            Iterator it = set.iterator();
+            // Display elements
+            while (it.hasNext()) {
+                Map.Entry me = (Map.Entry) it.next();
+                Connection temp = (Connection) me.getValue();
+                String reciverID = (String) me.getKey();
+                String[] recivers = tm.getReceivers();
+                if (recivers != null) {
+                    if (!(reciverID.equals(tm.getSenderID()))) {
+                        if (findUserIDInArray(reciverID, recivers)) {
+                            temp.sendTCP(tm);
                         }
 
                     }
@@ -183,13 +226,39 @@ public class SendUtil {
 
     private static boolean findUserIDInArray(String uid, String[] recivers) {
         for (String reciver : recivers) {
-        	System.out.println("could be  Reciver" + reciver);
+            System.out.println("could be  Reciver" + reciver);
             if (uid.equals(reciver)) {
-            	System.out.println("Curren Simple Message Reciver is :" + reciver);
+                System.out.println("Curren Simple Message Reciver is :" + reciver);
                 return true;
             }
         }
         return false;
+    }
+
+    public void sendObjectTOALL(Hashtable clientTable, String senderID, Object toSend) {
+        Set set = clientTable.entrySet();
+        // Get an iterator
+        Iterator i = set.iterator();
+        // Display elements
+        while (i.hasNext()) {
+            Map.Entry me = (Map.Entry) i.next();
+            Connection temp = (Connection) me.getValue();
+            String recID = (String) me.getKey();
+            if (!(recID.equals(senderID))) {
+                temp.sendTCP(toSend);
+                System.out.println("NEW user Message Send to : " + senderID);
+            }
+
+        }
+
+    }
+
+    public void reConnect(Client cl, UserLogin iam) throws IOException {
+        if (!cl.isConnected()) {
+            cl.reconnect();
+            cl.sendTCP(iam);
+        }
+
     }
 
 }

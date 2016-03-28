@@ -7,10 +7,7 @@ package testserver;
 
 import com.esotericsoftware.kryonet.Connection;
 import java.io.RandomAccessFile;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -19,12 +16,12 @@ import java.util.Set;
  */
 public class FileSenderThreadV2 extends Thread{
 
-    HashMap clientTablel;
+    Hashtable clientTablel;
     FileChunkMessageV2 fcv2;
     String[] tRecivers;
     String savedFilesDirectory;
     
-    public FileSenderThreadV2(HashMap clientTable, FileChunkMessageV2 fcv2, String[] tRecivers,String savedFilesDirectory){
+    public FileSenderThreadV2(Hashtable clientTable, FileChunkMessageV2 fcv2, String[] tRecivers,String savedFilesDirectory){
         this.clientTablel=clientTable;
         this.fcv2 =fcv2;
         this.tRecivers =tRecivers;
@@ -37,7 +34,7 @@ public class FileSenderThreadV2 extends Thread{
     }
 
     
-        public  void SendFileToRecivers(HashMap clientTable, FileChunkMessageV2 fcv2, String[] tRecivers) {
+        public  void SendFileToRecivers(Hashtable clientTable, FileChunkMessageV2 fcv2, String[] tRecivers) {
         RandomAccessFile aFile = null;
         long chunkcounter;
         int bufferSize = 1024;
@@ -91,7 +88,7 @@ public class FileSenderThreadV2 extends Thread{
         
         System.out.println("End of sending File");
     }
-    public void sendFileChunkToRecivers(HashMap clientTable, FileChunkMessageV2 fcv2, String[] tRecivers) throws InterruptedException {
+    public void sendFileChunkToRecivers(Hashtable clientTable, FileChunkMessageV2 fcv2, String[] tRecivers) throws InterruptedException {
         // FileChunkMessageV2 fcv2 used to get file informations 
 
         if (tRecivers != null) {

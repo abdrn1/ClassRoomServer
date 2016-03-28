@@ -15,15 +15,12 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import java.io.IOException;
 import com.esotericsoftware.kryo.Kryo;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 
 public class ClassServerV1 {
 
-	private HashMap<String, Connection> clientTable;
+	private Hashtable<String, Connection> clientTable;
 	ArrayList<UserLogin> usersList;
 	Connection teacherConnection;
 
@@ -47,11 +44,10 @@ public class ClassServerV1 {
 		usersList.add(new UserLogin("27", "STUDENT", "MAHMOUD NAJE", 4));
 		usersList.add(new UserLogin("28", "STUDENT", "MAHMOUD NAJE", 5));
 		usersList.add(new UserLogin("100", "TEACHER", "AONY AHMED", 1));
-		clientTable = new HashMap<String, Connection>();
+		clientTable = new Hashtable<String, Connection>();
 		System.out.println("Hello There ");
 		Server classroomServer = new Server(16384, 8192);
 		Kryo kryo = classroomServer.getKryo();
-
 		kryo.register(byte[].class);
 		kryo.register(String[].class);
 		kryo.register(UserLogin.class);
@@ -59,10 +55,13 @@ public class ClassServerV1 {
 		kryo.register(SimpleTextMessage.class);
 		kryo.register(FileChunkMessageV2.class);
 		kryo.register(LockMessage.class);
+        kryo.register(StatusMessage.class);
+		kryo.register(ExamResultMessage.class);
 
 		classroomServer.bind(9995, 54777);
 		classroomServer.start();
 		System.out.println("Server is now runing");
+
 
 		classroomServer.addListener(new Listener() {
 			@Override
@@ -78,14 +77,16 @@ public class ClassServerV1 {
 						if (ul1.getUserType().equals("TEACHER")) {
 							System.out.println("SEND List Of Active Uers TO: " + ul1.getUserName());
 							sendMeListOfActiveClients(ul1, c);
-
 						}
 						System.out.println(ul1.getUserType());
 						SendUtil.broadcastNewUser(clientTable, ul1);
 						System.out.println("Set Listener To Connection");
 						clientTable.put(ul1.getUserID(), c);
+
 						setCustomizedConnectionListenter(c);
-						System.out.println("Student Login Successfuly: " + ul1.getUserName());
+
+                        System.out.println("Student Login Successfuly: " + ul1.getUserName());
+
 					} else {
 						ul1 = new UserLogin();
 						ul1.setLogin_Succesful(false);
@@ -98,6 +99,10 @@ public class ClassServerV1 {
 			}
 
 		});
+        /// here we denfine way that tcheck if clients online or offline
+		CheckClientsStatus statusChecker = new CheckClientsStatus(clientTable,15000);
+		Thread statusCheckerThread = new Thread(statusChecker);
+		 statusCheckerThread.start();
 
 	}
 
@@ -122,27 +127,28 @@ public class ClassServerV1 {
 			String[] tRecivers;
 
 			@Override
-			public void received(Connection c, Object ob) {
+			public void received(Connection clientCon, Object clientob) {
 				// System.out.println("Hello There");
-				if (ob instanceof FileChunkMessageV2) {
+				if (clientob instanceof FileChunkMessageV2) {
 					try {
 
-						FileChunkMessageV2 fcmv2 = (FileChunkMessageV2) ob;
+						FileChunkMessageV2 fcmv2 = (FileChunkMessageV2) clientob;
 						String workingDir = System.getProperty("user.dir");
 
-						System.out.println("working dir is: " + workingDir);
-						// recive the first packet from new file
+						//System.out.println("working dir is: " + workingDir);
+						// recive the //first packet from new file
 
 						if (fcmv2.getChunkCounter() == 1L) {
 							buildfromBytesV2 = new BuildFileFromBytesV2(workingDir);
 							tRecivers = fcmv2.getRecivers();
 							buildfromBytesV2.constructFile(fcmv2);
+                            System.out.println("New File Chunk Recived");
 							// SendUtil.sendFileChunkToRecivers(clientTable,
 							// fcmv2, tRecivers);
 
 						} else if (buildfromBytesV2 != null) {
 							if (buildfromBytesV2.constructFile(fcmv2)) {
-								System.out.println("End OF REcive, Start TO send File To the Recivers");
+								System.out.println("file recived Completly, Start TO send File To the Recivers");
 								System.out.println(fcmv2.getFileName());
 								System.out.println(fcmv2.getSenderID());
 								FileSenderThreadV2 fsv2 = new FileSenderThreadV2(clientTable, fcmv2, tRecivers,
@@ -161,18 +167,23 @@ public class ClassServerV1 {
 						ex.printStackTrace();
 					}
 
-				} else if (ob instanceof TextMeesage) {
-					System.out.println("New Text Message Recived From :" + ((TextMeesage) ob).getSenderName());
-					SendUtil.sendSimpleMessageToRecivers(clientTable, (TextMeesage) ob);
-				} else if (ob instanceof LockMessage) {
-					System.out.println("New Lock Message Recived From :" + ((LockMessage) ob).getSenderName());
-					SendUtil.sendLockMessageToRecivers(clientTable, (LockMessage) ob);
+				} else if (clientob instanceof TextMeesage) {
+					System.out.println("New Text Message Recived From :" + ((TextMeesage) clientob).getSenderName());
+					SendUtil.sendSimpleMessageToRecivers(clientTable, (TextMeesage) clientob);
+				} else if (clientob instanceof LockMessage) {
+					System.out.println("New Lock Message Recived From :" + ((LockMessage) clientob).getSenderName());
+					SendUtil.sendLockMessageToRecivers(clientTable, (LockMessage) clientob);
 
+				}else if (clientob instanceof  ExamResultMessage){
+					System.out.println("New Lock Message Recived From");
+					SendUtil.sendExamResuloRecivers(clientTable,(ExamResultMessage)clientob);
 				}
 
 			}
 		});
 	}
+
+
 
 	public void sendMeListOfActiveClients(UserLogin me, Connection myconnection) {
 		Set set = clientTable.entrySet();
