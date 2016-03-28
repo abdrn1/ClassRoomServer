@@ -102,7 +102,7 @@ public class ClassServerV1 {
         /// here we denfine way that tcheck if clients online or offline
 		CheckClientsStatus statusChecker = new CheckClientsStatus(clientTable,15000);
 		Thread statusCheckerThread = new Thread(statusChecker);
-		 statusCheckerThread.start();
+		 //statusCheckerThread.start();
 
 	}
 
