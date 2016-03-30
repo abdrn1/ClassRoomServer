@@ -64,7 +64,7 @@ public class ClassServerV1 {
 		usersList.add(new UserLogin("100", "TEACHER", "AONY AHMED", 1));
 		clientTable = new Hashtable<String, Connection>();
 		System.out.println("Hello There ");
-		Server classroomServer = new Server(1024*1024, 1024*1024);
+		Server classroomServer = new Server(1024*1024, (1024*1024)/10);
 		Kryo kryo = classroomServer.getKryo();
 		kryo.register(byte[].class);
 		kryo.register(String[].class);
