@@ -10,13 +10,31 @@ package testserver;
  * @author Abd
  */
 import com.esotericsoftware.kryonet.Server;
+
+import sun.misc.BASE64Decoder;
+
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import com.esotericsoftware.kryo.Kryo;
 
 import java.util.*;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 public class ClassServerV1 {
 
@@ -46,7 +64,7 @@ public class ClassServerV1 {
 		usersList.add(new UserLogin("100", "TEACHER", "AONY AHMED", 1));
 		clientTable = new Hashtable<String, Connection>();
 		System.out.println("Hello There ");
-		Server classroomServer = new Server(16384, 8192);
+		Server classroomServer = new Server(1024*1024, 1024*1024);
 		Kryo kryo = classroomServer.getKryo();
 		kryo.register(byte[].class);
 		kryo.register(String[].class);
@@ -57,6 +75,10 @@ public class ClassServerV1 {
 		kryo.register(LockMessage.class);
         kryo.register(StatusMessage.class);
 		kryo.register(ExamResultMessage.class);
+		kryo.register(MonitorRequestMessage.class);
+		kryo.register(ScreenshotMessage.class);
+		kryo.register(BoardScreenshotMessage.class);
+		
 
 		classroomServer.bind(9995, 54777);
 		classroomServer.start();
@@ -177,6 +199,49 @@ public class ClassServerV1 {
 				}else if (clientob instanceof  ExamResultMessage){
 					System.out.println("New Lock Message Recived From");
 					SendUtil.sendExamResuloRecivers(clientTable,(ExamResultMessage)clientob);
+				}else if(clientob instanceof MonitorRequestMessage){
+					System.out.println("Monitor Request received ... ");
+					SendUtil.sendMonitorRequestToReceiver(clientTable, (MonitorRequestMessage) clientob);
+				}else if(clientob instanceof ScreenshotMessage){
+					System.out.print("Screenshot received at the server");
+
+					SendUtil.sendScreenshotMessageToReceiver(clientTable, (ScreenshotMessage) clientob);
+				}else if(clientob instanceof BoardScreenshotMessage){
+					String encodedImage = ((BoardScreenshotMessage) clientob).getBase64Photo();
+					if(encodedImage != null){
+			            try {
+			                BASE64Decoder decoder = new BASE64Decoder();
+			                byte[] imageBytes = decoder.decodeBuffer(encodedImage);
+			                ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
+			                BufferedImage image = ImageIO.read(bis);
+			                bis.close();
+			                
+			                JFrame frame = new JFrame("Client: "+((BoardScreenshotMessage) clientob).getReceiverId());
+			                Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+			                frame.setSize(dim);
+			                frame.setLocationRelativeTo(null);
+			                frame.setResizable(false);
+			                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			                frame.setLayout(new BorderLayout());
+			                JLabel jLabel = new JLabel(new ImageIcon(image));
+			             
+			                JPanel jPanel = new JPanel();
+			                jPanel.add(jLabel);
+			                JScrollPane scrollFrame = new JScrollPane(jPanel);
+			                jPanel.setAutoscrolls(true);
+			                frame.add(scrollFrame, BorderLayout.CENTER);
+			                frame.setVisible(true);
+			                java.awt.EventQueue.invokeLater(new Runnable() {
+			                    @Override
+			                    public void run() {
+			                    	frame.toFront();
+			                    	frame.repaint();
+			                    }
+			                });
+			            } catch (IOException e) {
+			                e.printStackTrace();
+			            }
+					}
 				}
 
 			}

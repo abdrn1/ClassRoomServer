@@ -196,6 +196,62 @@ public class SendUtil {
 
     }
 
+    public static void sendScreenshotMessageToReceiver(Hashtable<String, Connection> clientTable,
+		ScreenshotMessage tm) {
+
+	    	if (tm.getReceiverID() != null) {
+
+	            Set set = clientTable.entrySet();
+	            // Get an iterator
+	            Iterator it = set.iterator();
+	            // Display elements
+	            while (it.hasNext()) {
+	                Map.Entry me = (Map.Entry) it.next();
+	                Connection temp = (Connection) me.getValue();
+	                String reciverID = (String) me.getKey();
+	                String targetID = tm.getReceiverID();
+	                if (targetID != null) {
+	                    if (!(reciverID.equals(tm.getSenderID()))) {
+	                        if (findUserIDInArray(reciverID, new String[]{targetID})) {
+	                            temp.sendTCP(tm);
+	                        }
+
+	                    }
+
+	                }
+
+	            }
+	        }
+		
+	}
+    
+    public static void sendMonitorRequestToReceiver(Hashtable<String, Connection> clientTable,
+			MonitorRequestMessage tm) {
+
+    	if (tm.getReceiverID() != null) {
+
+            Set set = clientTable.entrySet();
+            // Get an iterator
+            Iterator it = set.iterator();
+            // Display elements
+            while (it.hasNext()) {
+                Map.Entry me = (Map.Entry) it.next();
+                Connection temp = (Connection) me.getValue();
+                String reciverID = (String) me.getKey();
+                String targetID = tm.getReceiverID();
+                if (targetID != null) {
+                    if (!(reciverID.equals(tm.getSenderID()))) {
+                        if (findUserIDInArray(reciverID, new String[]{targetID})) {
+                            temp.sendTCP(tm);
+                        }
+
+                    }
+
+                }
+
+            }
+        }
+	}
     public static void sendExamResuloRecivers(Hashtable clientTable, ExamResultMessage tm) {
 
         if (tm.getReceivers() != null) {
@@ -260,5 +316,9 @@ public class SendUtil {
         }
 
     }
+
+	
+
+	
 
 }
