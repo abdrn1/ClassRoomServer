@@ -40,6 +40,7 @@ public class ClassServerV1 {
 
 	private Hashtable<String, Connection> clientTable;
 	ArrayList<UserLogin> usersList;
+	private  Hashtable<RecivedFileKey,BuildFileFromBytesV2> recivedFilesTable;
 	Connection teacherConnection;
 
 	// BuildFileFromBytesV2 buildfromBytesV2;
@@ -57,14 +58,24 @@ public class ClassServerV1 {
 
 	public void startServer() throws IOException {
 		usersList = new ArrayList<UserLogin>();
+		recivedFilesTable = new Hashtable<>();
 		usersList.add(new UserLogin("25", "STUDENT", "ABD RADWAN", 1));
 		usersList.add(new UserLogin("26", "STUDENT", "ALI HASSAN", 2));
 		usersList.add(new UserLogin("27", "STUDENT", "MAHMOUD NAJE", 4));
-		usersList.add(new UserLogin("28", "STUDENT", "MAHMOUD NAJE", 5));
+		usersList.add(new UserLogin("28", "STUDENT", "Bahaa Bashiti", 5));
+		usersList.add(new UserLogin("29", "STUDENT", "Ashraf Ali", 5));
+		usersList.add(new UserLogin("30", "STUDENT", "Ramzi Abd", 5));
+		usersList.add(new UserLogin("31", "STUDENT", "Rafat Radwan", 5));
+		usersList.add(new UserLogin("32", "STUDENT", "Wesam Sateri", 5));
+		usersList.add(new UserLogin("33", "STUDENT", "Kayed Abu sakeh", 5));
+		usersList.add(new UserLogin("34", "STUDENT", "Mansour Hosny", 5));
 		usersList.add(new UserLogin("100", "TEACHER", "AONY AHMED", 1));
 		clientTable = new Hashtable<String, Connection>();
 		System.out.println("Hello There ");
+
 		Server classroomServer = new Server(1024*1024, (1024*1024)/10);
+
+		//Server classroomServer = new Server(16384, 8192);
 		Kryo kryo = classroomServer.getKryo();
 		kryo.register(byte[].class);
 		kryo.register(String[].class);
@@ -164,25 +175,38 @@ public class ClassServerV1 {
 							buildfromBytesV2 = new BuildFileFromBytesV2(workingDir);
 							tRecivers = fcmv2.getRecivers();
 							buildfromBytesV2.constructFile(fcmv2);
+							recivedFilesTable.put(new RecivedFileKey(fcmv2.senderID,fcmv2.getFileName()),buildfromBytesV2);
                             System.out.println("New File Chunk Recived");
+							RecivedFileKey a1 = new RecivedFileKey("25","a1");
+							RecivedFileKey a2 = new RecivedFileKey("25","a1");
+							if(a1.equals(a2)){
+								System.out.println("TWO EQUAL KEEEEEEEEYS");
+							}
 							// SendUtil.sendFileChunkToRecivers(clientTable,
 							// fcmv2, tRecivers);
 
-						} else if (buildfromBytesV2 != null) {
-							if (buildfromBytesV2.constructFile(fcmv2)) {
-								System.out.println("file recived Completly, Start TO send File To the Recivers");
-								System.out.println(fcmv2.getFileName());
-								System.out.println(fcmv2.getSenderID());
-								FileSenderThreadV2 fsv2 = new FileSenderThreadV2(clientTable, fcmv2, tRecivers,
-										workingDir);
-								// Thread t = new Thread(fsv2);
-								// t.start();
-								fsv2.start();
+						} else{
+							BuildFileFromBytesV2 bffb = recivedFilesTable.get(new RecivedFileKey(fcmv2.getSenderID(), fcmv2.getFileName()));
+							if (bffb != null) {
 
-								System.out.println("Start Thread to Send File To the Recivets");
+									System.out.println("Real File Chunk");
+									if (bffb.constructFile(fcmv2)) {
+										recivedFilesTable.remove(new RecivedFileKey(fcmv2.getSenderID(), fcmv2.getFileName()));
+										System.out.println("file recived Completly, Start TO send File To the Recivers");
+										System.out.println(fcmv2.getFileName());
+										System.out.println(fcmv2.getSenderID());
+										FileSenderThreadV2 fsv2 = new FileSenderThreadV2(clientTable, fcmv2, tRecivers,
+												workingDir);
+										// Thread t = new Thread(fsv2);
+										// t.start();
+										fsv2.start();
+
+										System.out.println("Start Thread to Send File To the Recivets");
+									}
+
+								/// SendUtil.sendFileChunkToRecivers(clientTable,
+								/// fcmv2, tRecivers);
 							}
-							/// SendUtil.sendFileChunkToRecivers(clientTable,
-							/// fcmv2, tRecivers);
 						}
 
 					} catch (Exception ex) {
@@ -216,7 +240,7 @@ public class ClassServerV1 {
 			                BufferedImage image = ImageIO.read(bis);
 			                bis.close();
 			                
-			                JFrame frame = new JFrame("Client: "+((BoardScreenshotMessage) clientob).getReceiverId());
+			                 final JFrame frame = new JFrame("Client: "+((BoardScreenshotMessage) clientob).getReceiverId());
 			                Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			                frame.setSize(dim);
 			                frame.setLocationRelativeTo(null);
