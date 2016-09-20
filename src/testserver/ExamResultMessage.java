@@ -5,6 +5,7 @@ package testserver;
  */
 public class ExamResultMessage {
 
+    String examFileName;
     private String senderID;
     private String senderName;
     private String[] receivers;

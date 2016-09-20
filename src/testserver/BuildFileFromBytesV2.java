@@ -5,7 +5,6 @@
  */
 package testserver;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
@@ -14,34 +13,53 @@ import java.io.RandomAccessFile;
  * @author Abd
  */
 public class BuildFileFromBytesV2 {
+    final static int bufferSize = 2000;
       RandomAccessFile aFile = null;
       String[] fileRecivers;
       String SaveDirectoryPath;
+    boolean fileDone = false;
+    private LogRecord lr;
     
     public BuildFileFromBytesV2(String SaveDirectoryPath)  {
          this.SaveDirectoryPath=SaveDirectoryPath; 
     }
 
-    public boolean constructFile(FileChunkMessageV2 imMsg) throws FileNotFoundException, IOException {
+
+    public boolean constructFile(FileChunkMessageV2 imMsg) throws IOException {
      
         if(imMsg.getChunkCounter()==(-1L)){ //End OF Fle Packet
-            System.out.println("End Of File Packet");
+            System.out.println("End Of File Packets");
             aFile.close();
-            
+            fileDone = true;
             return true;  /// return true if the file completed
         }
-        if(imMsg.getChunkCounter()==1L){ // New File
-               aFile = new RandomAccessFile(SaveDirectoryPath+imMsg.getFileName(), "rw");
-               System.out.println("New File Created");
+        if (imMsg.getChunkCounter() == 1L) {
+// New File
+            System.out.println("New File Recived From : " + imMsg.getSenderName());
+            aFile = new RandomAccessFile(SaveDirectoryPath + "/" + imMsg.getFileName(), "rw");
+             
                 aFile.write(imMsg.getChunk());
                 fileRecivers = imMsg.getRecivers();
-        }else{// File data PAcket
-           //  System.out.println("Normal packet =" + Long.toString(imMsg.getChunkCounter()));
-             
+        } else {// File data PAcket
+            System.out.println("Old File Recived From : " + imMsg.getSenderName() + " Counter =" + imMsg.getChunkCounter());
+            aFile.seek((bufferSize * (imMsg.getChunkCounter() - 1)));
             aFile.write(imMsg.getChunk());
-            
         }
         return  false;
+    }
+
+    /**
+     * @return the lr
+     */
+    public LogRecord getLr() {
+        return lr;
+    }
+
+    /**
+     * @param lr the lr to set
+     */
+    public void setLr(LogRecord lr) {
+        this.lr = lr;
     }
     
 }

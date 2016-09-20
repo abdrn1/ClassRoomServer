@@ -17,6 +17,7 @@ public class UserLogin {
      String userType;
      int UserIMage=1;
      boolean login_Succesful=false;
+    int myStatus = 0;
 
     public UserLogin() {
 
@@ -26,6 +27,7 @@ public class UserLogin {
         this.userID = userID;
         this.userType=type;
     }
+
       public UserLogin(String userID, String userType, String userName, int userIMage) {
         this.userID = userID;
         this.userType = userType;
@@ -33,6 +35,13 @@ public class UserLogin {
         UserIMage = userIMage;
     }
 
+    public int getMyStatus() {
+        return myStatus;
+    }
+
+    public void setMyStatus(int myStatus) {
+        this.myStatus = myStatus;
+    }
 
     public boolean isLogin_Succesful() {
         return login_Succesful;
